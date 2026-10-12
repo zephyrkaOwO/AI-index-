@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог ИИ-инструментов</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0f0f14;
+            --card-bg: #1a1a24;
+            --card-hover: #24243a;
+            --text: #e8e8f0;
+            --text-dim: #8888a0;
+            --accent: #7c5cff;
+            --accent-hover: #9579ff;
+            --border: #2a2a3e;
+            --tag-bg: #2a2a3e;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--accent), #ff5c9c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        header p { color: var(--text-dim); }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 42px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.6;
+        }
+        
+        .sort-select {
+            padding: 12px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        
+        .tags-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            min-height: 40px;
+        }
+        
+        .active-filter {
+            padding: 8px 16px;
+            background: var(--accent);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .active-filter:hover {
+            background: var(--accent-hover);
+        }
+        
+        .active-filter .clear-x {
+            font-size: 1rem;
+            opacity: 0.7;
+            padding: 0 2px;
+        }
+        
+        .active-filter .clear-x:hover {
+            opacity: 1;
+        }
+        
+        .tags-toggle-btn {
+            padding: 8px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+        
+        .tags-toggle-btn:hover {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+        
+        .tags-toggle-btn .arrow {
+            transition: transform 0.3s;
+            display: inline-block;
+            font-size: 0.7rem;
+        }
+        
+        .tags-toggle-btn.open .arrow {
+            transform: rotate(180deg);
+        }
+        
+        .tags-dropdown {
+            display: none;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 25px;
+            padding: 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .tags-dropdown.open {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tag-btn {
+            padding: 6px 14px;
+            background: var(--tag-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .tag-btn:hover { color: var(--text); border-color: var(--accent); }
+        
+        .tag-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        
+        .tag-btn.all-tag {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+        
+        .tag-btn.all-tag.active {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            transition: all 0.25s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card:hover {
+            background: var(--card-hover);
+            transform: translateY(-3px);
+            border-color: var(--accent);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), #ff5c9c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+        }
+        
+        .card-desc {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+        
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        
+        .card-tag {
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            background: var(--tag-bg);
+            border-radius: 12px;
+            color: var(--text-dim);
+        }
+        
+        .card-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .card-link:hover { color: var(--accent-hover); }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+            grid-column: 1 / -1;
+        }
+        
+        .counter {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Каталог ИИ-инструментов</h1>
+            <p>Лучшие нейросети для работы, учёбы и творчества</p>
+        </header>
+        
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="search" placeholder="Поиск по названию или описанию...">
+            </div>
+            <select class="sort-select" id="sort">
+                <option value="name">По названию (А-Я)</option>
+                <option value="name-desc">По названию (Я-А)</option>
+                <option value="date">Сначала новые</option>
+                <option value="date-old">Сначала старые</option>
+            </select>
+        </div>
+        
+        <div class="tags-bar">
+            <div class="active-filter" id="activeFilter" title="Сбросить фильтр">
+                <span id="activeFilterText">Все теги</span>
+                <span class="clear-x" id="clearFilter" style="display:none;">✕</span>
+            </div>
+            <button class="tags-toggle-btn" id="tagsToggle">
+                <span>Теги</span>
+                <span class="arrow">▼</span>
+            </button>
+        </div>
+        
+        <div class="tags-dropdown" id="tagsDropdown"></div>
+        
+        <div class="counter" id="counter"></div>
+        <div class="grid" id="grid"></div>
+    </div>
+
+<script>
+const tools = [
+    { name: "ChatGPT", desc: "Тексты, анализ фото и файлов, таблицы, обучение, код. Бесплатный и платный.", url: "https://chat.openai.com", tags: ["универсальный", "текст", "код", "анализ"], icon: "💬", date: "2026-10-12" },
+    { name: "Claude", desc: "Большие документы, грамотные тексты, анализ, код. Бесплатный и платный.", url: "https://claude.ai", tags: ["универсальный", "текст", "код", "документы"], icon: "🧠", date: "2026-10-12" },
+    { name: "Gemini", desc: "Поиск, документы, изображения, интеграция с Google Docs и Sheets. Бесплатный и платный.", url: "https://gemini.google.com", tags: ["универсальный", "поиск", "google", "документы"], icon: "✨", date: "2026-10-12" },
+    { name: "DeepSeek", desc: "Логика, математика, программирование. Полностью бесплатный.", url: "https://chat.deepseek.com", tags: ["универсальный", "код", "математика", "бесплатный"], icon: "🔍", date: "2026-10-12" },
+    { name: "Qwen", desc: "Отлично работает с русским языком, тексты, код, анализ. Бесплатный и платный.", url: "https://chat.qwenlm.ai", tags: ["универсальный", "текст", "код", "русский"], icon: "🐉", date: "2026-10-12" },
+    { name: "Grok", desc: "Новости, общие вопросы, актуальные темы в реальном времени. Бесплатный и платный.", url: "https://grok.x.ai", tags: ["универсальный", "поиск", "новости"], icon: "⚡", date: "2026-10-12" },
+    { name: "Microsoft Copilot", desc: "Поиск, тексты, изображения, интеграция с Word, Excel, PowerPoint. Бесплатный и платный.", url: "https://copilot.microsoft.com", tags: ["универсальный", "офис", "поиск"], icon: "🪟", date: "2026-10-12" },
+    { name: "Perplexity", desc: "Поиск информации с указанием достоверных источников. Бесплатный и платный.", url: "https://www.perplexity.ai", tags: ["универсальный", "поиск", "анализ"], icon: "🌐", date: "2026-10-12" },
+    { name: "GigaChat", desc: "Русский язык, работа с документами, генерация изображений. Бесплатный и платный.", url: "https://gigachat.devices.sberbank.ru", tags: ["универсальный", "русский", "текст"], icon: "🟢", date: "2026-10-12" },
+    { name: "YandexGPT / Алиса", desc: "Русские тексты, поиск, бытовые задачи. Бесплатный.", url: "https://ya.ru/ai", tags: ["универсальный", "русский", "быт", "бесплатный"], icon: "🔴", date: "2026-10-12" },
+    { name: "Midjourney", desc: "Очень качественные изображения и художественные стили. Платный.", url: "https://www.midjourney.com", tags: ["изображения", "арт", "платный"], icon: "🎨", date: "2026-10-12" },
+    { name: "DALL·E 3", desc: "Генерация и редактирование изображений по тексту. В составе тарифов ChatGPT Plus.", url: "https://openai.com/dall-e-3", tags: ["изображения", "арт"], icon: "🖼️", date: "2026-10-12" },
+    { name: "Adobe Firefly", desc: "Дизайн, обработка фото, коммерческая графика. Бесплатный лимит и платный.", url: "https://firefly.adobe.com", tags: ["изображения", "дизайн", "фото"], icon: "🔥", date: "2026-10-12" },
+    { name: "Stable Diffusion", desc: "Генерация и редактирование, возможна локальная установка. Бесплатный/платный.", url: "https://stability.ai", tags: ["изображения", "open-source", "локально"], icon: "🌌", date: "2026-10-12" },
+    { name: "Flux", desc: "Реалистичные изображения, отличная генерация текста на картинках. Бесплатный и платный.", url: "https://blackforestlabs.ai", tags: ["изображения", "реализм", "текст"], icon: "⚡", date: "2026-10-12" },
+    { name: "Kandinsky", desc: "Генерация изображений с отличной поддержкой русского языка. Бесплатный.", url: "https://fusionbrain.ai", tags: ["изображения", "русский", "бесплатный"], icon: "🖌️", date: "2026-10-12" },
+    { name: "Шедеврум", desc: "Генерация картинок и стилизация от Яндекса. Бесплатный.", url: "https://shedevrum.ai", tags: ["изображения", "русский", "бесплатный"], icon: "🏛️", date: "2026-10-12" },
+    { name: "Leonardo AI", desc: "Дизайн, персонажи, игровые объекты и ассеты. Бесплатный лимит и платный.", url: "https://leonardo.ai", tags: ["изображения", "дизайн", "игры"], icon: "🦁", date: "2026-10-12" },
+    { name: "Ideogram", desc: "Изображения с корректными надписями и логотипами. Бесплатный лимит и платный.", url: "https://ideogram.ai", tags: ["изображения", "логотипы", "текст"], icon: "🔤", date: "2026-10-12" },
+    { name: "Canva AI", desc: "Презентации, постеры, быстрый дизайн. Бесплатный лимит и платный.", url: "https://www.canva.com/ai-image-generator/", tags: ["изображения", "дизайн", "презентации"], icon: "🎨", date: "2026-10-12" },
+    { name: "Runway", desc: "Профессиональная генерация и монтаж видео. Бесплатный лимит и платный.", url: "https://runwayml.com", tags: ["видео", "монтаж"], icon: "🎬", date: "2026-10-12" },
+    { name: "Kling AI", desc: "Реалистичное видео из текста и фото. Бесплатный лимит и платный.", url: "https://klingai.com", tags: ["видео", "реализм"], icon: "🎥", date: "2026-10-12" },
+    { name: "Pika", desc: "Короткие ролики и визуальные эффекты. Бесплатный лимит и платный.", url: "https://pika.art", tags: ["видео", "эффекты"], icon: "⚡", date: "2026-10-12" },
+    { name: "Luma Dream Machine", desc: "Высококачественное видео из текста и изображений. Бесплатный лимит и платный.", url: "https://lumalabs.ai/dream-machine", tags: ["видео", "3d"], icon: "🌌", date: "2026-10-12" },
+    { name: "Sora", desc: "Сложные реалистичные видео от OpenAI. Платный/ограниченный доступ.", url: "https://openai.com/sora", tags: ["видео", "реализм"], icon: "🎞️", date: "2026-10-12" },
+    { name: "HeyGen", desc: "Создание аватаров и видео с цифровыми дикторами. Бесплатный лимит и платный.", url: "https://www.heygen.com", tags: ["видео", "аватары"], icon: "🗣️", date: "2026-10-12" },
+    { name: "Synthesia", desc: "Обучающие и корпоративные видео с аватарами. Платный.", url: "https://www.synthesia.io", tags: ["видео", "обучение", "бизнес"], icon: "👔", date: "2026-10-12" },
+    { name: "CapCut AI", desc: "Умный монтаж, субтитры, эффекты. Бесплатный и платный.", url: "https://www.capcut.com", tags: ["видео", "монтаж", "бесплатный"], icon: "✂️", date: "2026-10-12" },
+    { name: "ElevenLabs", desc: "Реалистичная озвучка и клонирование голоса. Бесплатный лимит и платный.", url: "https://elevenlabs.io", tags: ["аудио", "голос", "озвучка"], icon: "🎙️", date: "2026-10-12" },
+    { name: "Suno", desc: "Создание полноценных песен и музыки по тексту. Бесплатный лимит и платный.", url: "https://suno.com", tags: ["аудио", "музыка", "песни"], icon: "🎵", date: "2026-10-12" },
+    { name: "Udio", desc: "Продвинутая генерация музыки высокого качества. Бесплатный лимит и платный.", url: "https://www.udio.com", tags: ["аудио", "музыка"], icon: "🎶", date: "2026-10-12" },
+    { name: "Murf", desc: "Профессиональная дикторская озвучка для презентаций. Бесплатный лимит и платный.", url: "https://murf.ai", tags: ["аудио", "голос", "озвучка"], icon: "🎧", date: "2026-10-12" },
+    { name: "Whisper", desc: "Точная расшифровка аудио и речи в текст. Бесплатный/платный.", url: "https://openai.com/index/whisper/", tags: ["аудио", "транскрибация", "текст"], icon: "👂", date: "2026-10-12" },
+    { name: "Yandex SpeechKit", desc: "Распознавание и синтез речи с отличной поддержкой русского. Бесплатный лимит и платный.", url: "https://yandex.ru/dev/speechkit/", tags: ["аудио", "голос", "русский"], icon: "🔴", date: "2026-10-12" },
+    { name: "GitHub Copilot", desc: "Написание и исправление кода прямо в редакторе. Бесплатный лимит и платный.", url: "https://github.com/features/copilot", tags: ["код", "разработка"], icon: "🐙", date: "2026-10-12" },
+    { name: "Cursor", desc: "Полноценное программирование в AI-ориентированном редакторе. Бесплатный лимит и платный.", url: "https://cursor.sh", tags: ["код", "редактор", "разработка"], icon: "🖱️", date: "2026-10-12" },
+    { name: "Windsurf", desc: "Разработка с автономным ИИ-агентом от Codeium. Бесплатный лимит и платный.", url: "https://codeium.com/windsurf", tags: ["код", "агент", "разработка"], icon: "🌊", date: "2026-10-12" },
+    { name: "Codeium", desc: "Быстрое автодополнение кода. Бесплатный и платный.", url: "https://codeium.com", tags: ["код", "автодополнение", "бесплатный"], icon: "💻", date: "2026-10-12" },
+    { name: "Replit AI", desc: "Создание и деплой приложений онлайн с помощью ИИ. Бесплатный лимит и платный.", url: "https://replit.com/ai", tags: ["код", "онлайн", "разработка"], icon: "🚀", date: "2026-10-12" },
+    { name: "Amazon Q Developer", desc: "Помощь с кодом и интеграция с AWS. Бесплатный и платный.", url: "https://aws.amazon.com/q/developer/", tags: ["код", "aws", "облако"], icon: "☁️", date: "2026-10-12" },
+    { name: "Tabnine", desc: "Приватное автодополнение кода на основе ИИ. Бесплатный лимит и платный.", url: "https://www.tabnine.com", tags: ["код", "автодополнение"], icon: "🔹", date: "2026-10-12" },
+    { name: "Notion AI", desc: "Умные заметки, планы, базы данных и саммари. Бесплатный лимит и платный.", url: "https://www.notion.so/product/ai", tags: ["документы", "заметки", "планирование"], icon: "📝", date: "2026-10-12" },
+    { name: "NotebookLM", desc: "Глубокий анализ загруженных документов и создание аудио-саммари. Бесплатный.", url: "https://notebooklm.google.com", tags: ["документы", "анализ", "google", "бесплатный"], icon: "📚", date: "2026-10-12" },
+    { name: "OCR.Space", desc: "Бесплатное распознавание текста с фото и сканов. Бесплатный и платный.", url: "https://ocr.space", tags: ["документы", "ocr", "бесплатный"], icon: "📷", date: "2026-10-12" },
+    { name: "ABBYY FineReader", desc: "Эталонное точное распознавание документов и PDF. Платный.", url: "https://pdf.abbyy.com", tags: ["документы", "ocr", "платный"], icon: "📄", date: "2026-10-12" },
+    { name: "Google Lens", desc: "Мгновенное распознавание текста, перевод и поиск по фото. Бесплатный.", url: "https://lens.google.com", tags: ["документы", "поиск", "бесплатный"], icon: "👁️", date: "2026-10-12" },
+    { name: "Adobe Acrobat AI", desc: "Умный анализ, саммари и вопросы по PDF-документам. Платный/ограниченно бесплатный.", url: "https://www.adobe.com/acrobat/generative-ai-pdf.html", tags: ["документы", "pdf", "анализ"], icon: "📕", date: "2026-10-12" }
+];
+
+let activeTag = null;
+let dropdownOpen = false;
+
+function initTags() {
+    const allTags = [...new Set(tools.flatMap(t => t.tags))].sort();
+    const dropdown = document.getElementById('tagsDropdown');
+    
+    const allBtn = document.createElement('button');
+    allBtn.className = 'tag-btn all-tag active';
+    allBtn.textContent = 'Все';
+    allBtn.dataset.tag = '';
+    allBtn.onclick = () => selectTag(null);
+    dropdown.appendChild(allBtn);
+    
+    allTags.forEach(tag => {
+        const btn = document.createElement('button');
+        btn.className = 'tag-btn';
+        btn.textContent = tag;
+        btn.dataset.tag = tag;
+        btn.onclick = () => selectTag(tag);
+        dropdown.appendChild(btn);
+    });
+}
+
+function selectTag(tag) {
+    activeTag = tag;
+    updateActiveFilter();
+    updateTagsHighlight();
+    render();
+    if (tag !== null) {
+        dropdownOpen = false;
+        updateDropdownState();
+    }
+}
+
+function updateActiveFilter() {
+    const filterEl = document.getElementById('activeFilter');
+    const textEl = document.getElementById('activeFilterText');
+    const clearEl = document.getElementById('clearFilter');
+    
+    if (activeTag === null) {
+        textEl.textContent = 'Все теги';
+        clearEl.style.display = 'none';
+    } else {
+        textEl.textContent = activeTag;
+        clearEl.style.display = 'inline';
+    }
+}
+
+function updateTagsHighlight() {
+    document.querySelectorAll('#tagsDropdown .tag-btn').forEach(btn => {
+        const btnTag = btn.dataset.tag;
+        const isActive = (activeTag === null && btnTag === '') || btnTag === activeTag;
+        btn.classList.toggle('active', isActive);
+    });
+}
+
+function updateDropdownState() {
+    const dropdown = document.getElementById('tagsDropdown');
+    const toggleBtn = document.getElementById('tagsToggle');
+    
+    dropdown.classList.toggle('open', dropdownOpen);
+    toggleBtn.classList.toggle('open', dropdownOpen);
+}
+
+function toggleDropdown() {
+    dropdownOpen = !dropdownOpen;
+    updateDropdownState();
+}
+
+function clearFilter() {
+    activeTag = null;
+    updateActiveFilter();
+    updateTagsHighlight();
+    render();
+}
+
+function render() {
+    const query = document.getElementById('search').value.toLowerCase();
+    const sortBy = document.getElementById('sort').value;
+    
+    let filtered = tools.filter(t => {
+        const matchSearch = !query || 
+            t.name.toLowerCase().includes(query) || 
+            t.desc.toLowerCase().includes(query) ||
+            t.tags.some(tag => tag.toLowerCase().includes(query));
+        const matchTag = !activeTag || t.tags.includes(activeTag);
+        return matchSearch && matchTag;
+    });
+    
+    filtered.sort((a, b) => {
+        if (sortBy === 'name') return a.name.localeCompare(b.name, 'ru');
+        if (sortBy === 'name-desc') return b.name.localeCompare(a.name, 'ru');
+        if (sortBy === 'date') return new Date(b.date) - new Date(a.date);
+        if (sortBy === 'date-old') return new Date(a.date) - new Date(b.date);
+    });
+    
+    const grid = document.getElementById('grid');
+    document.getElementById('counter').textContent = `Найдено: ${filtered.length} из ${tools.length}`;
+    
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty-state">😕 Ничего не найдено. Попробуйте другой запрос.</div>';
+        return;
+    }
+    
+    grid.innerHTML = filtered.map(t => `
+        <div class="card" onclick="window.open('${t.url}', '_blank')">
+            <div class="card-header">
+                <div class="card-icon">${t.icon || '🤖'}</div>
+                <div class="card-title">${t.name}</div>
+            </div>
+            <div class="card-desc">${t.desc}</div>
+            <div class="card-tags">
+                ${t.tags.map(tag => `<span class="card-tag">${tag}</span>`).join('')}
+            </div>
+            <a class="card-link" href="${t.url}" target="_blank" onclick="event.stopPropagation()">
+                Перейти →
+            </a>
+        </div>
+    `).join('');
+}
+
+document.getElementById('search').addEventListener('input', render);
+document.getElementById('sort').addEventListener('change', render);
+document.getElementById('tagsToggle').addEventListener('click', toggleDropdown);
+document.getElementById('activeFilter').addEventListener('click', (e) => {
+    if (e.target.id === 'clearFilter') {
+        e.stopPropagation();
+        clearFilter();
+    }
+});
+
+initTags();
+updateActiveFilter();
+render();
+</script>
+</body>
+</html>
