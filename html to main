@@ -1,0 +1,53 @@
+
+name: Deploy HTML from Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download HTML from Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir release
+          gh release download "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern '*.html' \
+            --dir release
+
+          files=(release/*.html)
+          if [ "${#files[@]}" -ne 1 ]; then
+            echo "В Release должен быть ровно один HTML-файл"
+            exit 1
+          fi
+
+          cp "${files[0]}" "AI-index 23.10 12.08.html"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add "AI-index 23.10 12.08.html"
+
+          if git diff --cached --quiet; then
+            echo "Изменений нет"
+            exit 0
+          fi
+
+          git commit -m "Deploy release $GITHUB_REF_NAME"
+          git push origin main
