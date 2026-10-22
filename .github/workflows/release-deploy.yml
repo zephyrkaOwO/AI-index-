@@ -1,4 +1,7 @@
-
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
 name: Deploy HTML from Release
 
 on:
