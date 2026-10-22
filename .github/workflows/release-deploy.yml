@@ -23,7 +23,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir release
-          gh release download "$GITHUB_REF_NAME" \
+         gh release download v1.1 \
             --repo "$GITHUB_REPOSITORY" \
             --pattern '*.html' \
             --dir release
