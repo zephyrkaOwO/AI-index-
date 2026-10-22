@@ -1,10 +1,7 @@
-on:
-  workflow_dispatch:
-  release:
-    types: [published]
 name: Deploy HTML from Release
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
 
@@ -42,8 +39,7 @@ jobs:
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add "AI-index 23.10 12.08.html"
 
