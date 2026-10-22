@@ -21,22 +21,29 @@ jobs:
       - name: Download HTML from Release
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || 'v1.1' }}
         run: |
           mkdir release
-         gh release download \
-            --repo "$GITHUB_REPOSITORY" \
-            --pattern '*.html' \
-            --dir release
 
-          files=(release/*.html)
-          if [ "${#files[@]}" -ne 1 ]; then
-            echo "В Release должен быть ровно один HTML-файл"
+          curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" \
+            -o release/release.json
+
+          asset_url=$(jq -r '[.assets[] | select(.name | endswith(".html"))][0].browser_download_url // empty' release/release.json)
+
+          if [ -z "$asset_url" ]; then
+            echo "В релизе $RELEASE_TAG не найден HTML-файл"
             exit 1
           fi
 
-          cp "${files[0]}" "AI-index 23.10 12.08.html"
+          curl -fL "$asset_url" -o release/site.html
+          cp release/site.html "AI-index 23.10 12.08.html"
 
       - name: Commit and push
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || 'v1.1' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -47,5 +54,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Deploy release $GITHUB_REF_NAME"
+          git commit -m "Deploy release $RELEASE_TAG"
           git push origin main
