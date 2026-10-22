@@ -1,6 +1,5 @@
 
 name: Deploy HTML from Release
-
 on:
   workflow_dispatch:
   release:
